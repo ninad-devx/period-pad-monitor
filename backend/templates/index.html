@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SmartPad Monitor</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+<body>
+
+<div class="background"></div>
+
+<div class="app">
+
+    <header>
+
+        <div class="logo">
+            🩸
+        </div>
+
+        <h1>SmartPad</h1>
+
+        <p>
+            Real-Time Pad Monitoring
+        </p>
+
+    </header>
+
+    <!-- Status Card -->
+
+    <section class="status-card">
+
+        <div id="statusBadge" class="badge dry">
+
+            DRY
+
+        </div>
+
+        <h2 id="statusTitle">
+
+            Pad is Fresh
+
+        </h2>
+
+        <p id="statusMessage">
+
+            Everything looks good.
+
+        </p>
+
+    </section>
+
+    <!-- Circular Gauge -->
+
+    <section class="gauge-section">
+
+        <div class="gauge">
+
+            <svg viewBox="0 0 200 200">
+
+                <circle
+                        cx="100"
+                        cy="100"
+                        r="80"
+                        class="bg-circle"
+                ></circle>
+
+                <circle
+                        cx="100"
+                        cy="100"
+                        r="80"
+                        class="progress-circle"
+                        id="progressCircle"
+                ></circle>
+
+            </svg>
+
+            <div class="gauge-content">
+
+                <h1 id="moisture">
+
+                    0%
+
+                </h1>
+
+                <p>Wetness</p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- Recommendation -->
+
+    <section class="recommend-card">
+
+        <h3>
+
+            Recommendation
+
+        </h3>
+
+        <p id="recommendation">
+
+            Press Start Monitoring
+
+        </p>
+
+    </section>
+
+    <!-- Leak Risk -->
+
+    <section class="info-grid">
+
+        <div class="info-card">
+
+            <h4>
+
+                Leak Risk
+
+            </h4>
+
+            <h2 id="risk">
+
+                LOW
+
+            </h2>
+
+        </div>
+
+        <div class="info-card">
+
+            <h4>
+
+                Remaining Capacity
+
+            </h4>
+
+            <h2 id="remaining">
+
+                100%
+
+            </h2>
+
+        </div>
+
+    </section>
+
+    <!-- Last Update -->
+
+    <section class="last-update">
+
+        <span>
+
+            Last Update
+
+        </span>
+
+        <strong id="lastUpdate">
+
+            Waiting...
+
+        </strong>
+
+    </section>
+
+    <!-- Start Button -->
+
+    <section>
+
+        <button
+                class="primary-btn"
+                onclick="startMonitoring()"
+        >
+
+            Start Monitoring
+
+        </button>
+
+    </section>
+
+    <!-- Device -->
+
+    <section>
+
+        <button
+                class="secondary-btn"
+                onclick="openDeviceModal()"
+        >
+
+            ⚙ Device Settings
+
+        </button>
+
+    </section>
+
+</div>
+
+<!-- =============================== -->
+
+<!-- DEVICE SETTINGS MODAL -->
+
+<!-- =============================== -->
+
+<div id="deviceModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>
+
+                Device Settings
+
+            </h2>
+
+            <button
+                    class="close-btn"
+                    onclick="closeDeviceModal()"
+            >
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <!-- COM Port -->
+
+        <form
+                action="/connect"
+                method="post"
+        >
+
+            <label>
+
+                Serial Port
+
+            </label>
+
+            <select name="port">
+
+                {% for p in ports %}
+
+                <option value="{{ p.device }}">
+
+                    {{ p.device }} - {{ p.description }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button
+                    class="primary-btn"
+                    type="submit"
+            >
+
+                Connect ESP32
+
+            </button>
+
+        </form>
+
+        <form
+                action="/disconnect"
+                method="post"
+        >
+
+            <button
+                    class="danger-btn"
+            >
+
+                Disconnect
+
+            </button>
+
+        </form>
+
+        <hr>
+
+        <div class="device-grid">
+
+            <div>
+
+                <small>
+
+                    Connection
+
+                </small>
+
+                <h3 id="deviceConnection">
+
+                    Disconnected
+
+                </h3>
+
+            </div>
+
+            <div>
+
+                <small>
+
+                    Port
+
+                </small>
+
+                <h3 id="devicePort">
+
+                    --
+
+                </h3>
+
+            </div>
+
+            <div>
+
+                <small>
+
+                    Raw ADC
+
+                </small>
+
+                <h3 id="rawADC">
+
+                    0
+
+                </h3>
+
+            </div>
+
+            <div>
+
+                <small>
+
+                    Filtered ADC
+
+                </small>
+
+                <h3 id="filteredADC">
+
+                    0
+
+                </h3>
+
+            </div>
+
+            <div>
+
+                <small>
+
+                    Baseline
+
+                </small>
+
+                <h3 id="baselineADC">
+
+                    0
+
+                </h3>
+
+            </div>
+
+            <div>
+
+                <small>
+
+                    Sensor State
+
+                </small>
+
+                <h3 id="sensorState">
+
+                    DRY
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =============================== -->
+
+<!-- ALARM -->
+
+<!-- =============================== -->
+
+<audio
+        id="alarm"
+        preload="auto"
+        loop
+>
+
+    <source
+            src="/static/alarm.mp3"
+            type="audio/mpeg"
+    >
+
+</audio>
+
+<!-- =============================== -->
+
+<!-- LOADING -->
+
+<!-- =============================== -->
+
+<div id="loading" class="loading">
+
+    Connecting...
+
+</div>
+
+<script src="/static/script.js"></script>
+
+</body>
+</html>
