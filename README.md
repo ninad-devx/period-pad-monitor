@@ -439,3 +439,5 @@ https://youtube.com/shorts/NVeTMWgda5M?si=ROoE37gbmFttadlZ
 
 ## ⭐ If you found this project useful, consider giving it a star and contributing improvements.
 
+Python 3.14.3
+
